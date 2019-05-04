@@ -92,11 +92,11 @@ uniform_data_arr.sort(key=lambda tup: tup[2])
 # Get the total number of packet flows in each of the nodes
 # Be careful with the index here -- may want to change the above random node to 0 to max_nodes - 1
 normal_count_flows_remaining = [None] * NUM_NODES
-_, norm_nodes , _ = zip(*normal_data_arr)
+_, norm_nodes, _ = zip(*normal_data_arr)
 pareto_count_flows_remaining = [None] * NUM_NODES
-_, pareto_nodes , _ = zip(*pareto_data_arr)
+_, pareto_nodes, _ = zip(*pareto_data_arr)
 uniform_count_flows_remaining = [None] * NUM_NODES
-_, uniform_nodes , _ = zip(*uniform_data_arr)
+_, uniform_nodes, _ = zip(*uniform_data_arr)
 
 # initialize values for count_flows_remaining
 for i in range(NUM_NODES):
@@ -107,5 +107,33 @@ for i in range(NUM_NODES):
 
 
 print(normal_count_flows_remaining, " Total flows: ", sum(normal_count_flows_remaining))
-print(pareto_count_flows_remaining, " Total flows: ", sum(pareto_count_flows_remaining))
-print(uniform_count_flows_remaining, " Total flows: ", sum(uniform_count_flows_remaining))
+# print(pareto_count_flows_remaining, " Total flows: ", sum(pareto_count_flows_remaining))
+# print(uniform_count_flows_remaining, " Total flows: ", sum(uniform_count_flows_remaining))
+
+""" Potential problem:
+        total time in defined should be proportionate to packet flow size
+"""
+
+
+""" returns a list with how many flows are left for each node """
+def get_flows_left(flow_arr):
+    count_flows_remaining = [None] * NUM_NODES
+    _, dist_nodes, _ = zip(*flow_arr)
+    # get values for count_flows_remaining
+    for i in range(NUM_NODES):
+        # count the number of flows for each node
+        count_flows_remaining[i] = dist_nodes.count(i+1)
+
+    return count_flows_remaining
+
+flows_remaining = get_flows_left(normal_count_flows_remaining)
+print(flows_remaining, " Total flows: ", sum(flows_remaining))
+
+
+""" What is stored at the router """
+# flow count remaining for each node
+# total sent for each node
+# List of the packet flows to be sent (this is used to detect collisions)
+
+
+""" If I just sent the information without using the algorithms """
