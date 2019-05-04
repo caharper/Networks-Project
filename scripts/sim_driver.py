@@ -36,9 +36,9 @@ uniform = np.add(uniformBefore, abs(np.min(uniformBefore)))
 # print(np.max(uniform))
 # print(uniform)
 
-print(len(normal))
-print(len(pareto))
-print(len(uniform))
+# print(len(normal))
+# print(len(pareto))
+# print(len(uniform))
 
 ''' Create network architecture '''
 
@@ -84,3 +84,28 @@ normal_data_arr.sort(key=lambda tup: tup[2])
 pareto_data_arr.sort(key=lambda tup: tup[2])
 # Sort uniform
 uniform_data_arr.sort(key=lambda tup: tup[2])
+
+
+
+''' Information for algorithms '''
+
+# Get the total number of packet flows in each of the nodes
+# Be careful with the index here -- may want to change the above random node to 0 to max_nodes - 1
+normal_count_flows_remaining = [None] * NUM_NODES
+_, norm_nodes , _ = zip(*normal_data_arr)
+pareto_count_flows_remaining = [None] * NUM_NODES
+_, pareto_nodes , _ = zip(*pareto_data_arr)
+uniform_count_flows_remaining = [None] * NUM_NODES
+_, uniform_nodes , _ = zip(*uniform_data_arr)
+
+# initialize values for count_flows_remaining
+for i in range(NUM_NODES):
+    # count the number of flows for each node
+    normal_count_flows_remaining[i] = norm_nodes.count(i+1)
+    pareto_count_flows_remaining[i] = pareto_nodes.count(i+1)
+    uniform_count_flows_remaining[i] = uniform_nodes.count(i+1)
+
+
+print(normal_count_flows_remaining, " Total flows: ", sum(normal_count_flows_remaining))
+print(pareto_count_flows_remaining, " Total flows: ", sum(pareto_count_flows_remaining))
+print(uniform_count_flows_remaining, " Total flows: ", sum(uniform_count_flows_remaining))
