@@ -4,13 +4,13 @@ import random
 import time
 
 # Create a node
-n1 = Node(1, 5)
+# n1 = Node(1, 5)
 
 ''' Distributions '''
 
 # Normal Distribution
 mu, sigma = 0, 0.1 # mean and standard deviation
-normalBefore = np.random.normal(mu, sigma, 1000)
+normalBefore = np.random.normal(mu, sigma, 100000)
 # Since normal Distribution goes from -inf to inf, shift by smallest value to get
 # all positive numbers
 # print(np.min(normal))
@@ -62,13 +62,13 @@ for flow in normal:
     normal_data_arr.append((flow, random.randint(1,NUM_NODES), random.uniform(0,MAX_TIME)))
 
 # Could do all of this in the same for loop, but for clarity's sake
-for flow in pareto:
-    # Packet flow, node assignment, arrival time
-    pareto_data_arr.append((flow, random.randint(1,NUM_NODES), random.uniform(0,MAX_TIME)))
-
-for flow in uniform:
-    # Packet flow, node assignment, arrival time
-    uniform_data_arr.append((flow, random.randint(1,NUM_NODES), random.uniform(0,MAX_TIME)))
+# for flow in pareto:
+#     # Packet flow, node assignment, arrival time
+#     pareto_data_arr.append((flow, random.randint(1,NUM_NODES), random.uniform(0,MAX_TIME)))
+#
+# for flow in uniform:
+#     # Packet flow, node assignment, arrival time
+#     uniform_data_arr.append((flow, random.randint(1,NUM_NODES), random.uniform(0,MAX_TIME)))
 
 # print('----------Before-------------')
 # print(normal_data_arr[0])
@@ -81,10 +81,10 @@ for flow in uniform:
 # Sorts in place
 # Sort normal
 normal_data_arr.sort(key=lambda tup: tup[2])
-# Sort pareto
-pareto_data_arr.sort(key=lambda tup: tup[2])
-# Sort uniform
-uniform_data_arr.sort(key=lambda tup: tup[2])
+# # Sort pareto
+# pareto_data_arr.sort(key=lambda tup: tup[2])
+# # Sort uniform
+# uniform_data_arr.sort(key=lambda tup: tup[2])
 
 
 
@@ -94,17 +94,17 @@ uniform_data_arr.sort(key=lambda tup: tup[2])
 # Be careful with the index here -- may want to change the above random node to 0 to max_nodes - 1
 normal_count_flows_remaining = [None] * NUM_NODES
 _, norm_nodes, _ = zip(*normal_data_arr)
-pareto_count_flows_remaining = [None] * NUM_NODES
-_, pareto_nodes, _ = zip(*pareto_data_arr)
-uniform_count_flows_remaining = [None] * NUM_NODES
-_, uniform_nodes, _ = zip(*uniform_data_arr)
+# pareto_count_flows_remaining = [None] * NUM_NODES
+# _, pareto_nodes, _ = zip(*pareto_data_arr)
+# uniform_count_flows_remaining = [None] * NUM_NODES
+# _, uniform_nodes, _ = zip(*uniform_data_arr)
 
 # initialize values for count_flows_remaining
 for i in range(NUM_NODES):
     # count the number of flows for each node
     normal_count_flows_remaining[i] = norm_nodes.count(i+1)
-    pareto_count_flows_remaining[i] = pareto_nodes.count(i+1)
-    uniform_count_flows_remaining[i] = uniform_nodes.count(i+1)
+    # pareto_count_flows_remaining[i] = pareto_nodes.count(i+1)
+    # uniform_count_flows_remaining[i] = uniform_nodes.count(i+1)
 
 
 print(normal_count_flows_remaining, " Total flows: ", sum(normal_count_flows_remaining))
@@ -142,21 +142,21 @@ print(normal_count_flows_remaining, " Total flows: ", sum(normal_count_flows_rem
 
 """ Normal wifi mean response time """
 wifi_normal_response = 0
-wifi_pareto_response = 0
-wifi_uniform_response = 0
+# wifi_pareto_response = 0
+# wifi_uniform_response = 0
 for i in range(len(normal_data_arr)):
     if(i==0):
         continue
     wifi_normal_response += normal_data_arr[i-1][0]
-    wifi_pareto_response += pareto_data_arr[i-1][0]
-    wifi_uniform_response += uniform_data_arr[i-1][0]
+    # wifi_pareto_response += pareto_data_arr[i-1][0]
+    # wifi_uniform_response += uniform_data_arr[i-1][0]
 
 wifi_normal_response = wifi_normal_response/len(normal_data_arr)
-wifi_pareto_response = wifi_pareto_response/len(pareto_data_arr)
-wifi_uniform_response = wifi_uniform_response/len(uniform_data_arr)
+# wifi_pareto_response = wifi_pareto_response/len(pareto_data_arr)
+# wifi_uniform_response = wifi_uniform_response/len(uniform_data_arr)
 print("Wifi normal without algos: ",wifi_normal_response)
-print("Wifi pareto without algos: ",wifi_pareto_response)
-print("Wifi uniform without algos: ",wifi_uniform_response)
+# print("Wifi pareto without algos: ",wifi_pareto_response)
+# print("Wifi uniform without algos: ",wifi_uniform_response)
 
 
 

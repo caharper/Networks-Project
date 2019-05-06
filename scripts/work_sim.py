@@ -28,6 +28,9 @@ for i in range(NUM_NODES):
     for entry in normal:
         entry = ((entry-avg)/avg)*.117 + .117
 
+    max = np.max(normal)
+    min = np.min(normal)
+
     # shuffle data
     random.shuffle(normal)
 
@@ -56,7 +59,16 @@ for i in range(len(big_packet_flows)):
         continue
     wifi_resonse_time += big_packet_flows[i-1]
 
-print("Wifi response baseline: ", wifi_resonse_time)
+# Right now this is the optimal case where nothing waits in the queue
+# Now adding in randomness overlap in queue
+overlap = 0
+for node in list_nodes:
+    for flow in node.packetstream:
+        overlap += avg * (NUM_NODES - 1)
+avg_add_overlap_time = random.uniform(0, avg) * (500*NUM_NODES)
+
+
+print("Wifi response baseline: ", wifi_resonse_time + overlap)
 
 
 # # reshuffle the
@@ -64,8 +76,19 @@ print("Wifi response baseline: ", wifi_resonse_time)
 
 
 def find_algo1_winner(algo1_nodes):
-    algo1_nodes.sort(key=lambda x: x.get_top_flow())
-    return algo1_nodes[0]
+    times = []
+    for node in algo1_nodes:
+        if( not node.is_empty()):
+            times.append((node.get_top_flow(), node))
+
+    times.sort(key=lambda tup: tup[0])
+    # algo1_nodes.sort(key=lambda x: x.get_top_flow())
+    try:
+        return times[0][1]
+    except:
+        print(times)
+        print(algo1_nodes)
+        return algo1_nodes[0]
 
 
 # print(np.max(list_nodes[0].packetstream))
@@ -83,6 +106,9 @@ previous_time_to_send = 0
 
 # Initialize times to run algorithms
 algo1_time = 0
+rand_transmission_time = 0
+
+was_sender = False
 
 # Choose random node to get the attempt send flow --- to start with
 attempt_send_num = random.randint(0,NUM_NODES-1)
@@ -93,6 +119,7 @@ attempt_send_flow = attempt_send_node.get_top_flow()
 
 # Continue running the network until all nodes are done sending
 big_packet_flows = []
+rand_colliders_nodes = []
 while(len(list_nodes) != 0):
 #     # Chose a random number of nodes to send data at this time
 #         # right now just picking one random node to challenge it, should be random array of
@@ -114,67 +141,97 @@ while(len(list_nodes) != 0):
         list_nodes = []
         continue
 
-    same = True
+    # Update a new sender if it was the sender on the previous step
+    # Choose new random sending node
+    if(was_sender):
+        try:
+            attempt_send_num = random.randint(0,NUM_NODES-1)
+            attempt_send_node = list_nodes[attempt_send_num]
+            attempt_send_flow = attempt_send_node.get_top_flow()
+        except:
+            print("Here is the error: ", len(list_nodes))
 
-    # make sure collision is from a different node
-    while(same):
-        # Choose another random node to try and collide with
-        attempt_collide_num = random.randint(0,NUM_NODES-1)
+    # same = True
+    #
+    # # make sure collision is from a different node
+    # while(same):
+    #     # Choose another random node to try and collide with
+    #     attempt_collide_num = random.randint(0,NUM_NODES-1)
+    #
+    #     if(attempt_collide_num != attempt_send_num):   # what if only one node left ????
+    #         same = False
+    #
+    # attempt_collide_node = list_nodes[attempt_collide_num]
+    # attempt_collide_flow = attempt_collide_node.get_top_flow()
 
-        if(attempt_collide_num != attempt_send_num):   # what if only one node left ????
-            same = False
 
-    attempt_collide_node = list_nodes[attempt_collide_num]
-    attempt_collide_flow = attempt_collide_node.get_top_flow()
+    rand_colliders_nums = random.sample(range(0, NUM_NODES-1), random.randint(1,NUM_NODES-1))
+
+    for rand in rand_colliders_nums:
+        rand_colliders_nodes.append(list_nodes[rand])
 
     """ Algorithm 1 --- packet flow size comparison """
     # Set the timer for the algorithm
     t0 = time.time()
-    # if the attempt colliding flow is smaller than the sending flow, collide
-    if(attempt_collide_flow < attempt_send_flow):
-        t1 = time.time()
-        algo1_time += t1-t0
+    winner_node = find_algo1_winner(rand_colliders_nodes)
+    t1 = time.time()
+    algo1_time += t1-t0
 
-        # Add in random amount of time transmitting
+    # Check if the winner node is the same as the attempted sender, otherwise,
+    # add in random transmission time
+    # print("winner: " , winner_node.id)
+    # print("maybe: " ,attempt_send_node.id)
+    if(winner_node.id != attempt_send_node.id):
+        # Random transmission time
+        rand_transmission_time += random.uniform(0, attempt_send_node.get_top_flow())
+
+        # Update the sender to the winner
+        attempt_send_node = winner_node
+
+        # Set was sender
+        was_sender = False
+
+        # Update the sender info with number
+        # Have to search for match
+        for rand in rand_colliders_nums:
+            # Get the list nodes with this random number, and compare with id
+            if(list_nodes[rand].id == winner_node.id):
+                # Set values
+                attempt_send_num = rand
+                attempt_send_flow = winner_node.get_top_flow()
+
+                # break loop
+                break
 
 
-        # Send collision flow
-        attempt_collide_node.remove_flow()
 
-        # Remove node if all streams have been sent
-        if(attempt_collide_node.is_empty()):
-            remove_empty_nodes(attempt_collide_num)
-            NUM_NODES = NUM_NODES - 1
+        # Repeat the process
 
-        # keep same attempt send flow
-        # add to response time
-        response_time += previous_time_to_send
-        # update previous_time_to_send to the current packet flow being sent
-        previous_time_to_send = attempt_collide_flow
-
-    # Send the intended one and make the attempt collide node be the attempt send node
+    # Winner was the already sending node
     else:
-        t1 = time.time()
-        algo1_time += t1-t0
-        # add to response time
+        # Add in the previous sender's time
         response_time += previous_time_to_send
-        # update previous_time_to_send to the current packet flow being sent
+
+        # Update the previous_time_to_send to this flow
         previous_time_to_send = attempt_send_flow
 
-        # send send flow
+        # Delete this flow
         attempt_send_node.remove_flow()
 
+        # Update values
         # Remove node if all streams have been sent
         if(attempt_send_node.is_empty()):
             remove_empty_nodes(attempt_send_num)
             NUM_NODES = NUM_NODES - 1
 
+        # Set was sender
+        was_sender = True
 
-        # Update attempt sending to this collision flow
-        attempt_send_num = attempt_collide_num
-        attempt_send_node = attempt_collide_node
-        attempt_send_flow = attempt_collide_flow
 
+
+    # Clear the random colliding nodes
+    rand_colliders_nodes = []
 
 response_time += algo1_time
+response_time += rand_transmission_time
 print(" Algorithm 1 resp time: ",response_time)
