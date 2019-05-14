@@ -4,12 +4,9 @@ import random
 import time
 import statistics
 
-# Time based on 1Mbps and flow size here:
-    # https://arxiv.org/pdf/1809.03486.pdf
-
 
 # Define the number of nodes in the network
-NUM_NODES = 6
+NUM_NODES = 100
 
 list_nodes = []
 
@@ -18,51 +15,51 @@ for i in range(NUM_NODES):
     # Create distibution
 
     """ Normal Distribution """
-    # mu, sigma = 0, 0.1 # mean and standard deviation
-    # normalBefore = np.random.normal(mu, sigma, 500)
-    # # Since normal Distribution goes from -inf to inf, shift by smallest value to get
-    # # all positive numbers
-    # # print(np.min(normal))
-    # normal = np.add(normalBefore, abs(np.min(normalBefore)))
-    # # get the average value
-    # # this should not be computed every time, but for simplicity i am going to
-    # avg = statistics.mean(normal)
-    #
-    # # modify each flow entry to be relative to the .117 sec/average flow
-    # for entry in normal:
-    #     entry = ((entry-avg)/avg)*.117 + .117
-    #
-    # max = np.max(normal)
-    # min = np.min(normal)
-    #
-    # # shuffle data
-    # random.shuffle(normal)
-    #
-    # # Create a node
-    # list_nodes.append(Node(i, normal))
+    mu, sigma = 0, 0.1 # mean and standard deviation
+    normalBefore = np.random.normal(mu, sigma, 500)
+    # Since normal Distribution goes from -inf to inf, shift by smallest value to get
+    # all positive numbers
+    # print(np.min(normal))
+    normal = np.add(normalBefore, abs(np.min(normalBefore)))
+    # get the average value
+    # this should not be computed every time, but for simplicity i am going to
+    avg = statistics.mean(normal)
+
+    # modify each flow entry to be relative to the .117 sec/average flow
+    for entry in normal:
+        entry = ((entry-avg)/avg)*.117 + .117
+
+    max = np.max(normal)
+    min = np.min(normal)
+
+    # shuffle data
+    random.shuffle(normal)
+
+    # Create a node
+    list_nodes.append(Node(i, normal))
 
 
 
     """ Pareto Distribution """
-    a, m = 3., 2.  # shape and mode
-    pareto = (np.random.pareto(a, 500) + 1) * m
-
-    # get the average value
-    # this should not be computed every time, but for simplicity i am going to
-    avg = statistics.mean(pareto)
-
-    # modify each flow entry to be relative to the .117 sec/average flow
-    for entry in pareto:
-        entry = ((entry-avg)/avg)*.117 + .117
-
-    max = np.max(pareto)
-    min = np.min(pareto)
-
-    # shuffle data
-    random.shuffle(pareto)
-
-    # Create a node
-    list_nodes.append(Node(i, pareto))
+    # a, m = 3., 2.  # shape and mode
+    # pareto = (np.random.pareto(a, 500) + 1) * m
+    #
+    # # get the average value
+    # # this should not be computed every time, but for simplicity i am going to
+    # avg = statistics.mean(pareto)
+    #
+    # # modify each flow entry to be relative to the .117 sec/average flow
+    # for entry in pareto:
+    #     entry = ((entry-avg)/avg)*.117 + .117
+    #
+    # max = np.max(pareto)
+    # min = np.min(pareto)
+    #
+    # # shuffle data
+    # random.shuffle(pareto)
+    #
+    # # Create a node
+    # list_nodes.append(Node(i, pareto))
 
 
     """ Uniform Distribution """
@@ -127,19 +124,9 @@ print("Wifi response baseline: ",  overlap)
 
 
 def find_algo1_winner(algo1_nodes):
-    times = []
-    for node in algo1_nodes:
-        if( not node.is_empty()):
-            times.append((node.get_top_flow(), node))
+    algo1_nodes.sort(key=lambda x: x.get_num_remaining())
+    return algo1_nodes[0]
 
-    times.sort(key=lambda tup: tup[0])
-    # algo1_nodes.sort(key=lambda x: x.get_top_flow())
-    try:
-        return times[0][1]
-    except:
-        print(times)
-        print(algo1_nodes)
-        return algo1_nodes[0]
 
 
 # print(np.max(list_nodes[0].packetstream))
